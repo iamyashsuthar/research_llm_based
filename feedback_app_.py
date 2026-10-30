@@ -31,12 +31,22 @@ try:
 except ImportError:
     pass
 
-def get_secret(name):
+def get_secret(name, ask=False):
     try:
         from kaggle_secrets import UserSecretsClient
         return UserSecretsClient().get_secret(name)
     except Exception:
-        return os.environ.get(name)
+        pass
+    value = os.environ.get(name)
+    if not value and ask:
+        import getpass
+        try:
+            value = getpass.getpass(f"Enter {name} (hidden, kept only for this session): ").strip()
+        except (EOFError, OSError):
+            value = ""
+        if value:
+            os.environ[name] = value
+    return value
 
 def ensure(pkg, import_name=None):
     try:
